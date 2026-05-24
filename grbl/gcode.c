@@ -327,10 +327,6 @@ uint8_t gc_execute_line(char *line)
   }
   // Parsing complete!
 
-  // Makeblock LaserBot / MLaser:
-  // Remember whether this block explicitly included an S word.
-  // value_words gets modified later during error checking, so save it now.
-  uint8_t makeblock_has_s_word = bit_istrue(value_words, bit(WORD_S));
 
   /* -------------------------------------------------------------------------------------
      STEP 3: Error-check all commands and values passed in this block. This step ensures all of
@@ -420,6 +416,13 @@ uint8_t gc_execute_line(char *line)
     }
   }
   // bit_false(value_words,bit(WORD_F)); // NOTE: Single-meaning value word. Set at end of error-checking.
+
+  #ifdef CPU_MAP_2560_MEGAPI_BOARD
+    // MegaPi / LaserBot:
+    // Remember whether this block explicitly included an S word.
+    // value_words gets modified later during error checking, so save it now.
+    uint8_t megapi_has_s_word = bit_istrue(value_words, bit(WORD_S));
+  #endif
 
   // [4. Set spindle speed ]: S is negative (done.)
   if (bit_isfalse(value_words,bit(WORD_S))) { gc_block.values.s = gc_state.spindle_speed; }
@@ -907,24 +910,55 @@ uint8_t gc_execute_line(char *line)
   gc_state.feed_rate = gc_block.values.f; // Always copy this value. See feed rate error-checking.
   pl_data->feed_rate = gc_state.feed_rate; // Record data for planner use.
 
-    // [4. Set spindle speed ]:
+  // [4. Set spindle speed ]:
+// [4. Set spindle speed ]:
+#ifdef CPU_MAP_2560_MEGAPI_BOARD
   if ((gc_state.spindle_speed != gc_block.values.s) ||
-      bit_istrue(gc_parser_flags, GC_PARSER_LASER_FORCE_SYNC) ||
-      makeblock_has_s_word) {
+      bit_istrue(gc_parser_flags,GC_PARSER_LASER_FORCE_SYNC) ||
+      megapi_has_s_word) {
 
-    // Makeblock LaserBot / MLaser:
-    // If the laser is already on, apply any explicit S word immediately.
-    // This makes these work without requiring M5 between them:
+    // Makeblock MegaPi / LaserBot:
+    //
+    // Original GRBL laser-mode logic may force spindle speed to 0 on non-motion
+    // blocks. That is normally useful for inline laser power during motion, but
+    // the LaserBot needs explicit S-word changes to update PWM immediately.
+    //
+    // This makes these work without requiring M5 between changes:
     //   M3 S10
     //   M3 S100
     //   S20
+    //
+    // Do not apply this to M5. M5 is handled in the spindle-control section.
     if (gc_state.modal.spindle != SPINDLE_DISABLE) {
-      spindle_sync(gc_state.modal.spindle, gc_block.values.s);
+      if (megapi_has_s_word) {
+        spindle_sync(gc_state.modal.spindle, gc_block.values.s);
+      } else if (bit_isfalse(gc_parser_flags,GC_PARSER_LASER_ISMOTION)) {
+        if (bit_istrue(gc_parser_flags,GC_PARSER_LASER_DISABLE)) {
+          spindle_sync(gc_state.modal.spindle, 0.0);
+        } else {
+          spindle_sync(gc_state.modal.spindle, gc_block.values.s);
+        }
+      }
     }
 
     gc_state.spindle_speed = gc_block.values.s;
     pl_data->spindle_speed = gc_state.spindle_speed;
   }
+#else
+    if ((gc_state.spindle_speed != gc_block.values.s) ||
+        bit_istrue(gc_parser_flags,GC_PARSER_LASER_FORCE_SYNC)) {
+      if (gc_state.modal.spindle != SPINDLE_DISABLE) {
+        if (bit_isfalse(gc_parser_flags,GC_PARSER_LASER_ISMOTION)) {
+          if (bit_istrue(gc_parser_flags,GC_PARSER_LASER_DISABLE)) {
+            spindle_sync(gc_state.modal.spindle, 0.0);
+          } else {
+            spindle_sync(gc_state.modal.spindle, gc_block.values.s);
+          }
+        }
+      }
+      gc_state.spindle_speed = gc_block.values.s; // Update spindle speed state.
+    }
+#endif
 
   // NOTE: Pass zero spindle speed for all restricted laser motions.
   if (bit_isfalse(gc_parser_flags,GC_PARSER_LASER_DISABLE)) {
@@ -938,15 +972,29 @@ uint8_t gc_execute_line(char *line)
 
   // [7. Spindle control ]:
   if (gc_state.modal.spindle != gc_block.modal.spindle) {
+    // Update spindle control and apply spindle speed when enabling it in this block.
+    // NOTE: All spindle state changes are synced, even in laser mode. Also, pl_data,
+    // rather than gc_state, is used to manage laser state for non-laser motions.
 
-    // Makeblock LaserBot / MLaser:
-    // Use the parsed S value directly when changing spindle state.
-    // pl_data->spindle_speed was remaining 0 in this GRBL-Mega fork.
-    spindle_sync(gc_block.modal.spindle, gc_block.values.s);
+    #ifdef CPU_MAP_2560_MEGAPI_BOARD
+      // MegaPi / LaserBot:
+      // Use the parsed S value directly when enabling the laser.
+      // When disabling with M5, always force speed to 0.
+      if (gc_block.modal.spindle == SPINDLE_DISABLE) {
+        spindle_sync(gc_block.modal.spindle, 0.0);
+        gc_state.spindle_speed = 0.0;
+        pl_data->spindle_speed = 0.0;
+      } else {
+        spindle_sync(gc_block.modal.spindle, gc_block.values.s);
+        gc_state.spindle_speed = gc_block.values.s;
+        pl_data->spindle_speed = gc_state.spindle_speed;
+      }
 
-    gc_state.modal.spindle = gc_block.modal.spindle;
-    gc_state.spindle_speed = gc_block.values.s;
-    pl_data->spindle_speed = gc_state.spindle_speed;
+      gc_state.modal.spindle = gc_block.modal.spindle;
+    #else
+      spindle_sync(gc_block.modal.spindle, pl_data->spindle_speed);
+      gc_state.modal.spindle = gc_block.modal.spindle;
+    #endif
   }
   pl_data->condition |= gc_state.modal.spindle; // Set condition flag for planner use.
 

@@ -30,20 +30,32 @@
 #include "grbl.h" // For Arduino IDE compatibility.
 
 
-// Define CPU pin map and default settings.
 // NOTE: OEMs can avoid the need to maintain/update the defaults.h and cpu_map.h files and use only
 // one configuration file by placing their specific defaults and pin map at the bottom of this file.
 // If doing so, simply comment out these two defines and see instructions below.
+
+// To use with an AtMega2560 generic board, comment out the other board definitions and uncomment the next two lines.
 // #define DEFAULTS_GENERIC
 // #define CPU_MAP_2560_INITIAL
+// #define GENERIC_2560
 
-// To use with RAMPS 1.4 Board, comment out the above defines and uncomment the next two defines
-#define DEFAULTS_RAMPS_BOARD
-#define CPU_MAP_2560_RAMPS_BOARD
+// To use with RAMPS 1.4 Board, comment out the other board definitions and uncomment the next two lines.
+// #define DEFAULTS_RAMPS_BOARD
+// #define CPU_MAP_2560_RAMPS_BOARD
+// #define NONGENERIC_2560
+
+// To use with the Makeblock MegaPi on the Lasebot, comment out the other board definitions and 
+// uncomment the next two lines.
+#define DEFAULTS_MEGAPI_LASERBOT
+#define CPU_MAP_2560_MEGAPI_BOARD
+#define NONGENERIC_2560
 
 // Serial baud rate
-// #define BAUD_RATE 230400
-#define BAUD_RATE 115200
+#ifdef DEFAULTS_MEGAPI_LASERBOT
+  #define BAUD_RATE 230400
+#else
+  #define BAUD_RATE 115200
+#endif
 
 // Define realtime command special characters. These characters are 'picked-off' directly from the
 // serial read data stream and are not passed to the grbl line execution parser. Select characters
@@ -60,7 +72,7 @@
 // NOTE: All override realtime commands must be in the extended ASCII character set, starting
 // at character value 128 (0x80) and up to 255 (0xFF). If the normal set of realtime commands,
 // such as status reports, feed hold, reset, and cycle start, are moved to the extended set
-// space, serial.c's RX ISR will need to be modified to accomodate the change.
+// space, serial.c's RX ISR will need to be modified to accommodate the change.
 // #define CMD_RESET 0x80
 // #define CMD_STATUS_REPORT 0x81
 // #define CMD_CYCLE_START 0x82
@@ -89,7 +101,13 @@
 // If homing is enabled, homing init lock sets Grbl into an alarm state upon power up. This forces
 // the user to perform the homing cycle (or override the locks) before doing anything else. This is
 // mainly a safety feature to remind the user to home, since position is unknown to Grbl.
-// #define HOMING_INIT_LOCK // Comment to disable
+#ifdef DEFAULTS_MEGAPI_LASERBOT
+  // Required for MegaPi
+  #define HOMING_INIT_LOCK
+#else
+  // Optional on other boards.
+  // #define HOMING_INIT_LOCK // Comment to disable
+#endif
 
 // Define the homing cycle patterns with bitmasks. The homing cycle first performs a search mode
 // to quickly engage the limit switches, followed by a slower locate mode, and finished by a short
@@ -102,14 +120,17 @@
 // cycle, but this requires some pin settings changes in cpu_map.h file. For example, the default homing
 // cycle can share the Z limit pin with either X or Y limit pins, since they are on different cycles.
 // By sharing a pin, this frees up a precious IO pin for other purposes. In theory, all axes limit pins
-// may be reduced to one pin, if all axes are homed with seperate cycles, or vice versa, all three axes
+// may be reduced to one pin, if all axes are homed with separate cycles, or vice versa, all three axes
 // on separate pin, but homed in one cycle. Also, it should be noted that the function of hard limits
 // will not be affected by pin sharing.
 // NOTE: Defaults are set for a traditional 3-axis CNC machine. Z-axis first to clear, followed by X & Y.
-#ifdef DEFAULTS_RAMPS_BOARD
+#ifdef CPU_MAP_2560_MEGAPI_BOARD
+  #define HOMING_CYCLE_0 (1<<X_AXIS)
+  #define HOMING_CYCLE_1 (1<<Y_AXIS)
+#elif defined(DEFAULTS_RAMPS_BOARD)
   #define HOMING_CYCLE_0 (1<<X_AXIS)   // Home X axis
   #define HOMING_CYCLE_1 (1<<Y_AXIS)   // Home Y axis
-  // #define HOMING_CYCLE_2 (1<<Z_AXIS)   // OPTIONAL: Home Z axis 
+  #define HOMING_CYCLE_2 (1<<Z_AXIS)   // OPTIONAL: Home Z axis 
 #else
   #define HOMING_CYCLE_0 (1<<Z_AXIS)                // REQUIRED: First move Z to clear workspace.
   #define HOMING_CYCLE_1 ((1<<X_AXIS)|(1<<Y_AXIS))  // OPTIONAL: Then move X,Y at the same time.
@@ -136,7 +157,13 @@
 // After homing, Grbl will set by default the entire machine space into negative space, as is typical
 // for professional CNC machines, regardless of where the limit switches are located. Uncomment this
 // define to force Grbl to always set the machine origin at the homed location despite switch orientation.
-#define HOMING_FORCE_SET_ORIGIN // Uncomment to enable.
+#ifdef DEFAULTS_MEGAPI_LASERBOT
+  // Require for megaPi board.
+  #define HOMING_FORCE_SET_ORIGIN
+#else
+  // Optional for other boards.
+  // #define HOMING_FORCE_SET_ORIGIN // Uncomment to enable.
+#endif
 
 // Number of blocks Grbl executes upon startup. These blocks are stored in EEPROM, where the size
 // and addresses are defined in settings.h. With the current settings, up to 2 startup blocks may

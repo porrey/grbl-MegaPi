@@ -20,69 +20,6 @@
 
 #include "grbl.h"
 
-// Makeblock LaserBot / MLaser stepper driver support pin init.
-// These pins came from the original Makeblock Marlin pins.h.
-static void makeblock_driver_init()
-{
-  // ---------------------------------------------------------------------------
-  // Laser hard off: Arduino Mega D10 = PB4 = OC2A
-  // ---------------------------------------------------------------------------
-  DDRB |= (1 << 4);
-  PORTB &= ~(1 << 4);
-  OCR2A = 0;
-  TCCR2A &= ~(1 << COM2A1);
-
-  // ---------------------------------------------------------------------------
-  // X/Y enable pins
-  //
-  // X_ENABLE = D35 = PC2
-  // Y_ENABLE = D36 = PC1
-  //
-  // Enable is active LOW, same as the working Arduino test sketch.
-  // ---------------------------------------------------------------------------
-  DDRC |= (1 << 2) | (1 << 1);
-  PORTC &= ~((1 << 2) | (1 << 1));
-
-  // ---------------------------------------------------------------------------
-  // X driver support pins
-  //
-  // X_MS1   = D34 = PC3
-  // X_MS2   = D33 = PC4
-  // X_MS3   = D32 = PC5
-  // X_RESET = D31 = PC6
-  // X_SLEEP = D18 = PD3
-  // ---------------------------------------------------------------------------
-  DDRC |= (1 << 3) | (1 << 4) | (1 << 5) | (1 << 6);
-  DDRD |= (1 << 3);
-
-  // ---------------------------------------------------------------------------
-  // Y driver support pins
-  //
-  // Y_MS1   = D37 = PC0
-  // Y_MS2   = D40 = PG1
-  // Y_MS3   = D41 = PG0
-  // Y_RESET = D38 = PD7
-  // Y_SLEEP = D19 = PD2
-  // ---------------------------------------------------------------------------
-  DDRC |= (1 << 0);
-  DDRG |= (1 << 1) | (1 << 0);
-  DDRD |= (1 << 7) | (1 << 2);
-
-  // ---------------------------------------------------------------------------
-  // Microstepping HIGH, same as the working Arduino test.
-  // This likely selects 1/16 microstepping on A4988-style drivers.
-  // ---------------------------------------------------------------------------
-  PORTC |= (1 << 3) | (1 << 4) | (1 << 5);  // X MS1/MS2/MS3
-  PORTC |= (1 << 0);                        // Y MS1
-  PORTG |= (1 << 1) | (1 << 0);              // Y MS2/MS3
-
-  // ---------------------------------------------------------------------------
-  // Wake drivers: RESET and SLEEP HIGH.
-  // ---------------------------------------------------------------------------
-  PORTC |= (1 << 6);             // X_RESET
-  PORTD |= (1 << 3);             // X_SLEEP
-  PORTD |= (1 << 7) | (1 << 2);  // Y_RESET/Y_SLEEP
-}
 
 void system_init()
 {
@@ -95,7 +32,10 @@ void system_init()
   CONTROL_PCMSK |= CONTROL_MASK;  // Enable specific pins of the Pin Change Interrupt
   PCICR |= (1 << CONTROL_INT);   // Enable Pin Change Interrupt
 
-  makeblock_driver_init();
+  #ifdef CPU_MAP_2560_MEGAPI_BOARD
+    // Custom initialization for the MegaPi board.
+    megapi_driver_init();
+  #endif
 }
 
 

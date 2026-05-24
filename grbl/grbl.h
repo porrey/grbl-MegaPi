@@ -62,6 +62,10 @@
 #include "jog.h"
 #include "sleep.h"
 
+#ifdef CPU_MAP_2560_MEGAPI_BOARD
+  #include "megapi.h"
+#endif
+
 // ---------------------------------------------------------------------------------------
 // COMPILE-TIME ERROR CHECKING OF DEFINE VALUES:
 
