@@ -14,7 +14,7 @@ Use this checklist whenever publishing a new firmware version.
 
 1. Open: https://github.com/arduino/library-registry
 2. Create a PR editing `repositories.txt` and add:
-   - `https://github.com/porrey/grbl-MegaPi.git`
+   - `https://github.com/porrey/grbl-MegaPi`
 3. Wait for index validation and merge.
 
 Notes:
