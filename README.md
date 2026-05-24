@@ -2,6 +2,21 @@
 
 # grbl-MegaPi (Makeblock LaserBot Firmware)
 
+[![Latest Stable Release](https://img.shields.io/github/v/release/porrey/grbl-MegaPi?display_name=tag&sort=semver)](https://github.com/porrey/grbl-MegaPi/releases/latest)
+
+**Latest stable for LaserBot:** https://github.com/porrey/grbl-MegaPi/releases/latest
+
+## How to upgrade (quick path)
+
+1. Open the latest stable release:
+   - https://github.com/porrey/grbl-MegaPi/releases/latest
+2. Download source ZIP, then install the `grbl` folder as an Arduino library.
+   - Arduino IDE: **Sketch > Include Library > Add .ZIP Library...**
+3. Open **File > Examples > grbl > grblUpload**.
+4. Select **Arduino Mega or Mega 2560** and upload to your MegaPi.
+
+> Planned distribution path: Arduino Library Manager support (see `doc/markdown/distribution.md` for submission/release steps).
+
 This repository is a Grbl-Mega fork configured for the **Makeblock LaserBot** and its **MegaPi (ATmega2560)** controller.
 
 The goal is to replace the original legacy firmware/software stack with a standard Grbl workflow so the LaserBot can be used with modern software like **LightBurn**.
@@ -131,3 +146,15 @@ This fork adds and enables the pieces needed to run a Makeblock LaserBot as a Gr
    - Laser power behavior is adapted for MegaPi/LaserBot handling in core motion/spindle flow.
 
 Together, these changes modernize the LaserBot workflow and allow practical use with current host software, especially LightBurn.
+
+## Maintainer discoverability checklist
+
+Repository settings that should be configured on GitHub:
+
+- **Description**: `Makeblock LaserBot firmware upgrade for MegaPi using Grbl + LightBurn workflow`
+- **Topics**: `laserbot`, `makeblock`, `megapi`, `grbl`, `firmware`, `lightburn`
+
+See also:
+
+- Release/submission workflow: `doc/markdown/distribution.md`
+- Community announcement templates: `doc/markdown/community_announcement.md`
