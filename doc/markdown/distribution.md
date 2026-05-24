@@ -5,7 +5,7 @@ Use this checklist whenever publishing a new firmware version.
 ## 1) Arduino Library metadata/version
 
 1. Update `/grbl/library.properties`:
-   - `version` must be SemVer (for example `1.1.1`).
+   - `version` must be SemVer (e.g. `1.1.1`).
    - Keep `name`, `url`, and `architectures` accurate.
 2. Ensure example sketch exists at:
    - `/grbl/examples/grblUpload/grblUpload.ino`
