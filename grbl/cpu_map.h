@@ -149,12 +149,17 @@
   
   // Define step pulse output pins.
   
-  #define STEP_PORT_0 F
-  #define STEP_PORT_1 F
-  #define STEP_PORT_2 L
-  #define STEP_BIT_0 0  // X Step - Pin A0
-  #define STEP_BIT_1 6  // Y Step - Pin A6
-  #define STEP_BIT_2 3  // Z Step - Pin D46
+  // Makeblock LaserBot step pulse output pins
+  // X_STEP = D12 = PB6
+  // Y_STEP = D8  = PH5
+  // Z_STEP = D9  = PH6
+  #define STEP_PORT_0 B
+  #define STEP_PORT_1 H
+  #define STEP_PORT_2 H
+  #define STEP_BIT_0 6
+  #define STEP_BIT_1 5
+  #define STEP_BIT_2 6
+
   #define _STEP_BIT(i) STEP_BIT_##i
   #define STEP_BIT(i) _STEP_BIT(i)
   #define STEP_DDR(i) _DDR(STEP_PORT_##i)
@@ -163,12 +168,17 @@
   #define STEP_PIN(i) _PIN(STEP_PORT_##i)
 
   // Define step direction output pins.
-  #define DIRECTION_PORT_0 F
-  #define DIRECTION_PORT_1 F
-  #define DIRECTION_PORT_2 L
-  #define DIRECTION_BIT_0 1 // X Dir - Pin A1
-  #define DIRECTION_BIT_1 7 // Y Dir - Pin A7
-  #define DIRECTION_BIT_2 1 // Z Dir - Pin D48
+  // Makeblock LaserBot direction pins
+  // X_DIR = D11 = PB5
+  // Y_DIR = D7  = PH4
+  // Z_DIR = D6  = PH3
+  #define DIRECTION_PORT_0 B
+  #define DIRECTION_PORT_1 H
+  #define DIRECTION_PORT_2 H
+  #define DIRECTION_BIT_0 5
+  #define DIRECTION_BIT_1 4
+  #define DIRECTION_BIT_2 3
+
   #define _DIRECTION_BIT(i) DIRECTION_BIT_##i
   #define DIRECTION_BIT(i) _DIRECTION_BIT(i)
   #define DIRECTION_DDR(i) _DDR(DIRECTION_PORT_##i)
@@ -176,25 +186,42 @@
   #define DIRECTION_PORT(i) _DIRECTION_PORT(i)
   #define DIRECTION_PIN(i) _PIN(DIRECTION_PORT_##i)
 
+  // Compatibility for GRBL-Mega code paths that still expect one shared enable pin.
+  // Use X_ENABLE as the legacy shared enable. Y_ENABLE is also forced enabled
+  // by makeblock_driver_init() in system.c.
+  #define STEPPERS_DISABLE_DDR   DDRC
+  #define STEPPERS_DISABLE_PORT  PORTC
+  #define STEPPERS_DISABLE_BIT   2 // X_ENABLE D35 / PC2
+  #define STEPPERS_DISABLE_MASK  (1<<STEPPERS_DISABLE_BIT)
+
   // Define stepper driver enable/disable output pin.
-  #define STEPPER_DISABLE_PORT_0 D
-  #define STEPPER_DISABLE_PORT_1 F
-  #define STEPPER_DISABLE_PORT_2 K
-  #define STEPPER_DISABLE_BIT_0 7 // X Enable - Pin D38
-  #define STEPPER_DISABLE_BIT_1 2 // Y Enable - Pin A2
-  #define STEPPER_DISABLE_BIT_2 0 // Z Enable - Pin A8
+  // Makeblock LaserBot separate enable pins
+  // X_ENABLE = D35 = PC2
+  // Y_ENABLE = D36 = PC1
+  // Z_ENABLE = D42 = PL7
+  #define STEPPER_DISABLE_PORT_0 C
+  #define STEPPER_DISABLE_PORT_1 C
+  #define STEPPER_DISABLE_PORT_2 L
+  #define STEPPER_DISABLE_BIT_0 2
+  #define STEPPER_DISABLE_BIT_1 1
+  #define STEPPER_DISABLE_BIT_2 7
+
   #define STEPPER_DISABLE_BIT(i) STEPPER_DISABLE_BIT_##i
   #define STEPPER_DISABLE_DDR(i) _DDR(STEPPER_DISABLE_PORT_##i)
   #define STEPPER_DISABLE_PORT(i) _PORT(STEPPER_DISABLE_PORT_##i)
   #define STEPPER_DISABLE_PIN(i) _PIN(STEPPER_DISABLE_PORT_##i)
 
   // Define homing/hard limit switch input pins and limit interrupt vectors. 
-  #define MIN_LIMIT_PORT_0 E
-  #define MIN_LIMIT_PORT_1 J
+// Makeblock LaserBot / MLaser real endstop pins found by scanner:
+// X endstop = Mega D60 = A6 = PK6
+// Y endstop = Mega D61 = A7 = PK7
+  #define MIN_LIMIT_PORT_0 F
+  #define MIN_LIMIT_PORT_1 F
   #define MIN_LIMIT_PORT_2 D
-  #define MIN_LIMIT_BIT_0 5 // X Limit Min - Pin D3
-  #define MIN_LIMIT_BIT_1 1 // Y Limit Min - Pin D14
-  #define MIN_LIMIT_BIT_2 3 // Z Limit Min - Pin D18
+  #define MIN_LIMIT_BIT_0 6 // X Limit Min - Mega D60 / A6 / PK6
+  #define MIN_LIMIT_BIT_1 7 // Y Limit Min - Mega D61 / A7 / PK7
+  #define MIN_LIMIT_BIT_2 3 // Z Limit Min - Mega D18 / PD3, unused
+
   #define _MIN_LIMIT_BIT(i) MIN_LIMIT_BIT_##i
   #define MIN_LIMIT_BIT(i) _MIN_LIMIT_BIT(i)
   #define MIN_LIMIT_DDR(i) _DDR(MIN_LIMIT_PORT_##i)
@@ -228,12 +255,21 @@
   #define SPINDLE_DIRECTION_BIT   3 // MEGA2560 Digital Pin 5 - Ramps 1.4 Servo 3 Signal pin
 
   // Define flood and mist coolant enable output pins.
-  #define COOLANT_FLOOD_DDR   DDRB
-  #define COOLANT_FLOOD_PORT  PORTB
-  #define COOLANT_FLOOD_BIT   4 // MEGA2560 Digital Pin 10 - Ramps 1.4 12v output
-  #define COOLANT_MIST_DDR    DDRH
-  #define COOLANT_MIST_PORT   PORTH
-  #define COOLANT_MIST_BIT    6 // MEGA2560 Digital Pin 9 - Ramps 1.4 12v output
+  // Park coolant outputs on unused Mega pins.
+  //
+  // Do NOT use D10 because D10 is the Makeblock laser PWM pin.
+  // Do NOT use D9 because D9 is the Makeblock Z_STEP pin.
+  // Do NOT use D4 because D4 is also SPINDLE_ENABLE in this map.
+  //
+  // Mega D44 = PL5
+  // Mega D45 = PL4
+  #define COOLANT_FLOOD_DDR   DDRL
+  #define COOLANT_FLOOD_PORT  PORTL
+  #define COOLANT_FLOOD_BIT   5 // Mega D44, parked/unused
+
+  #define COOLANT_MIST_DDR    DDRL
+  #define COOLANT_MIST_PORT   PORTL
+  #define COOLANT_MIST_BIT    4 // Mega D45, parked/unused
 
   // Define user-control CONTROLs (cycle start, reset, feed hold) input pins.
   // NOTE: All CONTROLs pins must be on the same port and not on a port with other input pins (limits).
@@ -256,39 +292,42 @@
   #define PROBE_BIT       7  // MEGA2560 Analog Pin 15
   #define PROBE_MASK      (1<<PROBE_BIT)
 
-  // Advanced Configuration Below You should not need to touch these variables
-  // Set Timer up to use TIMER4B which is attached to Digital Pin 8 - Ramps 1.4 12v output with heat sink
-  #define SPINDLE_PWM_MAX_VALUE     1024.0 // Translates to about 1.9 kHz PWM frequency at 1/8 prescaler
+  // Makeblock LaserBot laser PWM output
+  // Arduino Mega D10 = PB4 = OC2A
+  #define SPINDLE_PWM_MAX_VALUE     255.0
   #ifndef SPINDLE_PWM_MIN_VALUE
-  #define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
+    #define SPINDLE_PWM_MIN_VALUE   1
   #endif
   #define SPINDLE_PWM_OFF_VALUE     0
   #define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)
 
-  //Control Digital Pin 6 which is Servo 2 signal pin on Ramps 1.4 board
-  #define SPINDLE_TCCRA_REGISTER    TCCR4A
-  #define SPINDLE_TCCRB_REGISTER    TCCR4B
-  #define SPINDLE_OCR_REGISTER      OCR4C
-  #define SPINDLE_COMB_BIT          COM4C1
+  // Timer2, Fast PWM, OC2A on Arduino Mega D10 / PB4
+  #define SPINDLE_TCCRA_REGISTER    TCCR2A
+  #define SPINDLE_TCCRB_REGISTER    TCCR2B
+  #define SPINDLE_OCR_REGISTER      OCR2A
+  #define SPINDLE_COMB_BIT          COM2A1
 
-  // 1/8 Prescaler, 16-bit Fast PWM mode
-  #define SPINDLE_TCCRA_INIT_MASK ((1<<WGM40) | (1<<WGM41))
-  #define SPINDLE_TCCRB_INIT_MASK ((1<<WGM42) | (1<<WGM43) | (1<<CS41)) 
-  #define SPINDLE_OCRA_REGISTER   OCR4A // 16-bit Fast PWM mode requires top reset value stored here.
-  #define SPINDLE_OCRA_TOP_VALUE  0x0400 // PWM counter reset value. Should be the same as PWM_MAX_VALUE in hex.
+  // Fast PWM 8-bit, prescaler 8
+  #define SPINDLE_TCCRA_INIT_MASK   ((1<<WGM20) | (1<<WGM21))
+  #define SPINDLE_TCCRB_INIT_MASK   ((1<<CS21))
 
-  // Define spindle output pins.
-  #define SPINDLE_PWM_DDR   DDRH
-  #define SPINDLE_PWM_PORT  PORTH
-  #define SPINDLE_PWM_BIT   5 // MEGA2560 Digital Pin 8 
+  // Timer2 uses fixed TOP=0xFF in 8-bit Fast PWM.
+  // These are kept for GRBL-Mega compatibility.
+  #define SPINDLE_OCRA_REGISTER     OCR2A
+  #define SPINDLE_OCRA_TOP_VALUE    0
+
+  #define SPINDLE_PWM_DDR           DDRB
+  #define SPINDLE_PWM_PORT          PORTB
+  #define SPINDLE_PWM_BIT           4
 
 #endif
-/* 
-#ifdef CPU_MAP_CUSTOM_PROC
-  // For a custom pin map or different processor, copy and edit one of the available cpu
-  // map files and modify it to your needs. Make sure the defined name is also changed in
-  // the config.h file.
+
+#ifdef CPU_MAP_2560_MAKEBLOCK_MEGAPI
+  //
+  // Makeblock MegaPi board definition based on the Arduino Mega 2560.
+  //
+  #include "Boards/Makeblock/custom_nuts_bolts.h"
+  #include "Boards/Makeblock/cpu_map_megapi.h"
 #endif
-*/
 
 #endif

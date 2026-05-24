@@ -56,6 +56,15 @@ void limits_init()
       MAX_LIMIT_PORT(1) |= (1<<MAX_LIMIT_BIT(1));  // Enable internal pull-up resistors. Normal high operation.
       MAX_LIMIT_PORT(2) |= (1<<MAX_LIMIT_BIT(2));  // Enable internal pull-up resistors. Normal high operation.
     #endif
+    
+    // Makeblock LaserBot / MLaser real endstop pins:
+    // X = Mega D60 / A6 / PK6
+    // Y = Mega D61 / A7 / PK7
+    //
+    // Force these as inputs with pullups. This mirrors the working scanner sketch.
+    DDRF &= ~((1 << 6) | (1 << 7));
+    PORTF |= ((1 << 6) | (1 << 7));
+
     #ifndef DISABLE_HW_LIMITS
       if (bit_istrue(settings.flags,BITFLAG_HARD_LIMIT_ENABLE)) {
         LIMIT_PCMSK |= LIMIT_MASK; // Enable specific pins of the Pin Change Interrupt
@@ -69,6 +78,7 @@ void limits_init()
         WDTCSR = (1<<WDP0); // Set time-out at ~32msec.
       #endif
     #endif // DISABLE_HW_LIMITS
+      
   #else
     LIMIT_DDR &= ~(LIMIT_MASK); // Set as input pins
 
@@ -120,45 +130,26 @@ void limits_disable()
 uint8_t limits_get_state()
 {
   uint8_t limit_state = 0;
-  #ifdef DEFAULTS_RAMPS_BOARD
-    uint8_t pin;
-    uint8_t idx;
-    #ifdef INVERT_LIMIT_PIN_MASK
-      #error "INVERT_LIMIT_PIN_MASK is not implemented"
-    #endif
-    for (idx=0; idx<N_AXIS; idx++) {
-      pin = *max_limit_pins[idx] & (1<<max_limit_bits[idx]);
-      pin = !!pin;
-      if (bit_isfalse(settings.flags,BITFLAG_INVERT_LIMIT_PINS)) { pin = !pin; }
-      #ifdef INVERT_MAX_LIMIT_PIN_MASK
-        if (bit_istrue(INVERT_MAX_LIMIT_PIN_MASK, bit(idx))) { pin = !pin; }
-      #endif
-      if (pin)
-        limit_state |= (1 << idx);
-      pin = *min_limit_pins[idx] & (1<<min_limit_bits[idx]);
-      pin = !!pin;
-      if (bit_isfalse(settings.flags,BITFLAG_INVERT_LIMIT_PINS)) { pin = !pin; }
-      #ifdef INVERT_MIN_LIMIT_PIN_MASK
-        if (bit_istrue(INVERT_MIN_LIMIT_PIN_MASK, bit(idx))) { pin = !pin; }
-      #endif
-      if (pin)
-        limit_state |= (1 << idx);
-    } 
-    return(limit_state);
-  #else
-    uint8_t pin = (LIMIT_PIN & LIMIT_MASK);
-    #ifdef INVERT_LIMIT_PIN_MASK
-      pin ^= INVERT_LIMIT_PIN_MASK;
-    #endif
-    if (bit_isfalse(settings.flags,BITFLAG_INVERT_LIMIT_PINS)) { pin ^= LIMIT_MASK; }
-    if (pin) {  
-      uint8_t idx;
-      for (idx=0; idx<N_AXIS; idx++) {
-        if (pin & get_limit_pin_mask(idx)) { limit_state |= (1 << idx); }
-      }
-    }
-    return(limit_state);
-  #endif //DEFAULTS_RAMPS_BOARD
+  uint8_t pin = PINF;
+
+  // X = Mega D60 / A6 / PF6
+  if (pin & (1 << 6)) {
+    limit_state |= (1 << X_AXIS);
+  }
+
+  // Y = Mega D61 / A7 / PF7
+  if (pin & (1 << 7)) {
+    limit_state |= (1 << Y_AXIS);
+  }
+
+  // Apply GRBL $5 limit-pin invert setting.
+  // With pullups, $5=1 makes idle = not triggered and pressed = triggered.
+  // Only X and Y are used on this machine.
+  if (bit_istrue(settings.flags, BITFLAG_INVERT_LIMIT_PINS)) {
+    limit_state ^= ((1 << X_AXIS) | (1 << Y_AXIS));
+  }
+
+  return(limit_state);
 }
 
 #ifdef DEFAULTS_RAMPS_BOARD

@@ -327,6 +327,10 @@ uint8_t gc_execute_line(char *line)
   }
   // Parsing complete!
 
+  // Makeblock LaserBot / MLaser:
+  // Remember whether this block explicitly included an S word.
+  // value_words gets modified later during error checking, so save it now.
+  uint8_t makeblock_has_s_word = bit_istrue(value_words, bit(WORD_S));
 
   /* -------------------------------------------------------------------------------------
      STEP 3: Error-check all commands and values passed in this block. This step ensures all of
@@ -903,17 +907,25 @@ uint8_t gc_execute_line(char *line)
   gc_state.feed_rate = gc_block.values.f; // Always copy this value. See feed rate error-checking.
   pl_data->feed_rate = gc_state.feed_rate; // Record data for planner use.
 
-  // [4. Set spindle speed ]:
-  if ((gc_state.spindle_speed != gc_block.values.s) || bit_istrue(gc_parser_flags,GC_PARSER_LASER_FORCE_SYNC)) {
-    if (gc_state.modal.spindle != SPINDLE_DISABLE) { 
-      if (bit_isfalse(gc_parser_flags,GC_PARSER_LASER_ISMOTION)) {
-        if (bit_istrue(gc_parser_flags,GC_PARSER_LASER_DISABLE)) {
-           spindle_sync(gc_state.modal.spindle, 0.0);
-        } else { spindle_sync(gc_state.modal.spindle, gc_block.values.s); }
-      }
+    // [4. Set spindle speed ]:
+  if ((gc_state.spindle_speed != gc_block.values.s) ||
+      bit_istrue(gc_parser_flags, GC_PARSER_LASER_FORCE_SYNC) ||
+      makeblock_has_s_word) {
+
+    // Makeblock LaserBot / MLaser:
+    // If the laser is already on, apply any explicit S word immediately.
+    // This makes these work without requiring M5 between them:
+    //   M3 S10
+    //   M3 S100
+    //   S20
+    if (gc_state.modal.spindle != SPINDLE_DISABLE) {
+      spindle_sync(gc_state.modal.spindle, gc_block.values.s);
     }
-    gc_state.spindle_speed = gc_block.values.s; // Update spindle speed state.
+
+    gc_state.spindle_speed = gc_block.values.s;
+    pl_data->spindle_speed = gc_state.spindle_speed;
   }
+
   // NOTE: Pass zero spindle speed for all restricted laser motions.
   if (bit_isfalse(gc_parser_flags,GC_PARSER_LASER_DISABLE)) {
     pl_data->spindle_speed = gc_state.spindle_speed; // Record data for planner use. 
@@ -926,11 +938,15 @@ uint8_t gc_execute_line(char *line)
 
   // [7. Spindle control ]:
   if (gc_state.modal.spindle != gc_block.modal.spindle) {
-    // Update spindle control and apply spindle speed when enabling it in this block.
-    // NOTE: All spindle state changes are synced, even in laser mode. Also, pl_data,
-    // rather than gc_state, is used to manage laser state for non-laser motions.
-    spindle_sync(gc_block.modal.spindle, pl_data->spindle_speed);
+
+    // Makeblock LaserBot / MLaser:
+    // Use the parsed S value directly when changing spindle state.
+    // pl_data->spindle_speed was remaining 0 in this GRBL-Mega fork.
+    spindle_sync(gc_block.modal.spindle, gc_block.values.s);
+
     gc_state.modal.spindle = gc_block.modal.spindle;
+    gc_state.spindle_speed = gc_block.values.s;
+    pl_data->spindle_speed = gc_state.spindle_speed;
   }
   pl_data->condition |= gc_state.modal.spindle; // Set condition flag for planner use.
 

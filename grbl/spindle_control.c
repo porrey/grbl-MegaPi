@@ -26,7 +26,11 @@ static float pwm_gradient; // Precalulated value to speed up rpm to PWM conversi
 
 
 void spindle_init()
-{    
+{
+  // Makeblock LaserBot safety: force Arduino Mega D10 / PB4 low at boot.
+  DDRB |= (1 << 4);
+  PORTB &= ~(1 << 4);
+
   // Configure variable spindle PWM and enable pin, if required.
   SPINDLE_PWM_DDR |= (1<<SPINDLE_PWM_BIT); // Configure as PWM output pin.
   SPINDLE_TCCRA_REGISTER = SPINDLE_TCCRA_INIT_MASK; // Configure PWM output compare timer
@@ -37,6 +41,12 @@ void spindle_init()
 
   pwm_gradient = SPINDLE_PWM_RANGE/(settings.rpm_max-settings.rpm_min);
   spindle_stop();
+
+  // Makeblock LaserBot safety: force D10 off after GRBL timer setup.
+  OCR2A = 0;
+  TCCR2A &= ~(1 << COM2A1);
+  DDRB |= (1 << 4);
+  PORTB &= ~(1 << 4);
 }
 
 
@@ -53,120 +63,66 @@ uint8_t spindle_get_state()
 	return(SPINDLE_STATE_DISABLE);
 }
 
+void spindle_stop()
+{
+  OCR2A = 0;
+  TCCR2A &= ~(1 << COM2A1);
+
+  DDRB |= (1 << 4);
+  PORTB &= ~(1 << 4);
+
+  #ifdef INVERT_SPINDLE_ENABLE_PIN
+    SPINDLE_ENABLE_PORT |= (1 << SPINDLE_ENABLE_BIT);
+  #else
+    SPINDLE_ENABLE_PORT &= ~(1 << SPINDLE_ENABLE_BIT);
+  #endif
+}
+
 
 // Disables the spindle and sets PWM output to zero when PWM variable spindle speed is enabled.
 // Called by various main program and ISR routines. Keep routine small, fast, and efficient.
 // Called by spindle_init(), spindle_set_speed(), spindle_set_state(), and mc_reset().
-void spindle_stop()
-{
-  SPINDLE_TCCRA_REGISTER &= ~(1<<SPINDLE_COMB_BIT); // Disable PWM. Output voltage is zero.
-  #ifdef INVERT_SPINDLE_ENABLE_PIN
-    SPINDLE_ENABLE_PORT |= (1<<SPINDLE_ENABLE_BIT);  // Set pin to high
-  #else
-    SPINDLE_ENABLE_PORT &= ~(1<<SPINDLE_ENABLE_BIT); // Set pin to low
-  #endif
-}
-
-
-// Sets spindle speed PWM output and enable pin, if configured. Called by spindle_set_state()
-// and stepper ISR. Keep routine small and efficient.
 void spindle_set_speed(uint16_t pwm_value)
 {
-  SPINDLE_OCR_REGISTER = pwm_value; // Set PWM output level.
-  #ifdef SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED
-    if (pwm_value == SPINDLE_PWM_OFF_VALUE) {
-      spindle_stop();
-    } else {
-      SPINDLE_TCCRA_REGISTER |= (1<<SPINDLE_COMB_BIT); // Ensure PWM output is enabled.
-      #ifdef INVERT_SPINDLE_ENABLE_PIN
-        SPINDLE_ENABLE_PORT &= ~(1<<SPINDLE_ENABLE_BIT);
-      #else
-        SPINDLE_ENABLE_PORT |= (1<<SPINDLE_ENABLE_BIT);
-      #endif
-    }
+  if (pwm_value == 0) {
+    spindle_stop();
+    return;
+  }
+
+  if (pwm_value > 255) {
+    pwm_value = 255;
+  }
+
+  // Arduino Mega D10 = PB4 = OC2A.
+  DDRB |= (1 << 4);
+
+  // Match Arduino analogWrite(10, value) behavior:
+  // Timer2 Fast PWM, non-inverting OC2A, prescaler 64.
+  TCCR2A = (1 << WGM20) | (1 << WGM21) | (1 << COM2A1);
+  TCCR2B = (1 << CS22);
+  OCR2A = (uint8_t)pwm_value;
+
+  #ifdef INVERT_SPINDLE_ENABLE_PIN
+    SPINDLE_ENABLE_PORT &= ~(1 << SPINDLE_ENABLE_BIT);
   #else
-    if (pwm_value == SPINDLE_PWM_OFF_VALUE) {
-      SPINDLE_TCCRA_REGISTER &= ~(1<<SPINDLE_COMB_BIT); // Disable PWM. Output voltage is zero.
-    } else {
-      SPINDLE_TCCRA_REGISTER |= (1<<SPINDLE_COMB_BIT); // Ensure PWM output is enabled.
-    }
+    SPINDLE_ENABLE_PORT |= (1 << SPINDLE_ENABLE_BIT);
   #endif
 }
 
-
-#ifdef ENABLE_PIECEWISE_LINEAR_SPINDLE
-
-  // Called by spindle_set_state() and step segment generator. Keep routine small and efficient.
-  uint16_t spindle_compute_pwm_value(float rpm) // 328p PWM register is 8-bit.
-  {
-    uint16_t pwm_value;
-    rpm *= (0.010*sys.spindle_speed_ovr); // Scale by spindle speed override value.
-    // Calculate PWM register value based on rpm max/min settings and programmed rpm.
-    if ((settings.rpm_min >= settings.rpm_max) || (rpm >= RPM_MAX)) {
-      rpm = RPM_MAX;
-      pwm_value = SPINDLE_PWM_MAX_VALUE;
-    } else if (rpm <= RPM_MIN) {
-      if (rpm == 0.0) { // S0 disables spindle
-        pwm_value = SPINDLE_PWM_OFF_VALUE;
-      } else {
-        rpm = RPM_MIN;
-        pwm_value = SPINDLE_PWM_MIN_VALUE;
-      }
-    } else {
-      // Compute intermediate PWM value with linear spindle speed model via piecewise linear fit model.
-      #if (N_PIECES > 3)
-        if (rpm > RPM_POINT34) {
-          pwm_value = floor(RPM_LINE_A4*rpm - RPM_LINE_B4);
-        } else 
-      #endif
-      #if (N_PIECES > 2)
-        if (rpm > RPM_POINT23) {
-          pwm_value = floor(RPM_LINE_A3*rpm - RPM_LINE_B3);
-        } else 
-      #endif
-      #if (N_PIECES > 1)
-        if (rpm > RPM_POINT12) {
-          pwm_value = floor(RPM_LINE_A2*rpm - RPM_LINE_B2);
-        } else 
-      #endif
-      {
-        pwm_value = floor(RPM_LINE_A1*rpm - RPM_LINE_B1);
-      }
-    }
-    sys.spindle_speed = rpm;
-    return(pwm_value);
+uint16_t spindle_compute_pwm_value(float rpm)
+{
+  if (rpm <= 0.0) {
+    sys.spindle_speed = 0.0;
+    return 0;
   }
 
-#else 
-
-  // Called by spindle_set_state() and step segment generator. Keep routine small and efficient.
-  uint16_t spindle_compute_pwm_value(float rpm) // Mega2560 PWM register is 16-bit.
-  {
-	uint16_t pwm_value;
-	rpm *= (0.010*sys.spindle_speed_ovr); // Scale by spindle speed override value.
-	// Calculate PWM register value based on rpm max/min settings and programmed rpm.
-	if ((settings.rpm_min >= settings.rpm_max) || (rpm >= settings.rpm_max)) {
-	  // No PWM range possible. Set simple on/off spindle control pin state.
-	  sys.spindle_speed = settings.rpm_max;
-	  pwm_value = SPINDLE_PWM_MAX_VALUE;
-	} else if (rpm <= settings.rpm_min) {
-	  if (rpm == 0.0) { // S0 disables spindle
-		sys.spindle_speed = 0.0;
-		pwm_value = SPINDLE_PWM_OFF_VALUE;
-	  } else { // Set minimum PWM output
-		sys.spindle_speed = settings.rpm_min;
-		pwm_value = SPINDLE_PWM_MIN_VALUE;
-	  }
-	} else { 
-	  // Compute intermediate PWM value with linear spindle speed model.
-	  // NOTE: A nonlinear model could be installed here, if required, but keep it VERY light-weight.
-	  sys.spindle_speed = rpm;
-	  pwm_value = floor((rpm-settings.rpm_min)*pwm_gradient) + SPINDLE_PWM_MIN_VALUE;
-	}
-	return(pwm_value);
+  if (rpm > 255.0) {
+    rpm = 255.0;
   }
 
-#endif  
+  sys.spindle_speed = rpm;
+  return (uint16_t)rpm;
+}
 
 // Immediately sets spindle running state with direction and spindle rpm via PWM, if enabled.
 // Called by g-code parser spindle_sync(), parking retract and restore, g-code program end,
@@ -174,36 +130,56 @@ void spindle_set_speed(uint16_t pwm_value)
 void spindle_set_state(uint8_t state, float rpm)
 {
   if (sys.abort) { return; } // Block during abort.
-  if (state == SPINDLE_DISABLE) { // Halt or set spindle direction and rpm.
-  
+
+  if (state == SPINDLE_DISABLE) {
     sys.spindle_speed = 0.0;
     spindle_stop();
-  
+
   } else {
-  
+
     if (state == SPINDLE_ENABLE_CW) {
-      SPINDLE_DIRECTION_PORT &= ~(1<<SPINDLE_DIRECTION_BIT);
+      SPINDLE_DIRECTION_PORT &= ~(1 << SPINDLE_DIRECTION_BIT);
     } else {
-      SPINDLE_DIRECTION_PORT |= (1<<SPINDLE_DIRECTION_BIT);
+      SPINDLE_DIRECTION_PORT |= (1 << SPINDLE_DIRECTION_BIT);
     }
 
-    // NOTE: Assumes all calls to this function is when Grbl is not moving or must remain off.
-    if (settings.flags & BITFLAG_LASER_MODE) { 
-      if (state == SPINDLE_ENABLE_CCW) { rpm = 0.0; } // TODO: May need to be rpm_min*(100/MAX_SPINDLE_SPEED_OVERRIDE);
+    // In laser mode, do not allow M4/CCW to turn the laser on.
+    // M3/CW uses the requested S/rpm value.
+    if (settings.flags & BITFLAG_LASER_MODE) {
+      if (state == SPINDLE_ENABLE_CCW) {
+        rpm = 0.0;
+      }
     }
-    spindle_set_speed(spindle_compute_pwm_value(rpm));
+
+    // Makeblock LaserBot / MLaser:
+    // Treat the incoming GRBL S value directly as 0-255 PWM power.
+    //
+    // Required GRBL settings:
+    //   $30=255
+    //   $31=0
+    //   $32=1
+    if (rpm <= 0.0) {
+      sys.spindle_speed = 0.0;
+      spindle_set_speed(0);
+    } else {
+      if (rpm > 255.0) {
+        rpm = 255.0;
+      }
+
+      sys.spindle_speed = rpm;
+      spindle_set_speed((uint16_t)rpm);
+    }
 
     #ifndef SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED
       #ifdef INVERT_SPINDLE_ENABLE_PIN
-        SPINDLE_ENABLE_PORT &= ~(1<<SPINDLE_ENABLE_BIT);
+        SPINDLE_ENABLE_PORT &= ~(1 << SPINDLE_ENABLE_BIT);
       #else
-        SPINDLE_ENABLE_PORT |= (1<<SPINDLE_ENABLE_BIT);
-      #endif   
+        SPINDLE_ENABLE_PORT |= (1 << SPINDLE_ENABLE_BIT);
+      #endif
     #endif
-  
   }
-  
-  sys.report_ovr_counter = 0; // Set to report change immediately
+
+  sys.report_ovr_counter = 0; // Set to report change immediately.
 }
 
 
