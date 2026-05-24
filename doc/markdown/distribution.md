@@ -6,6 +6,7 @@ Use this checklist whenever publishing a new firmware version.
 
 1. Update `/grbl/library.properties`:
    - `version` must be SemVer (e.g. `1.1.1`).
+   - `version` must match the GitHub release tag for that firmware build.
    - Keep `name`, `url`, and `architectures` accurate.
 2. Ensure example sketch exists at:
    - `/grbl/examples/grblUpload/grblUpload.ino`
