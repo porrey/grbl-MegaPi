@@ -1,11 +1,133 @@
-![GitHub Logo](https://github.com/gnea/gnea-Media/blob/master/Grbl%20Logo/Grbl%20Logo%20250px.png?raw=true)
+![Grbl Logo](https://github.com/gnea/gnea-Media/blob/master/Grbl%20Logo/Grbl%20Logo%20250px.png?raw=true)
 
-[See grbl documentation.](https://github.com/gnea/grbl-Mega/blob/edge/README.md)
+# grbl-MegaPi (Makeblock LaserBot Firmware)
 
-# Makeblock LaserBot Support
-This fork of the grbl firmware proivdes support for the Makeblock LaseBot built on an old, modified version of Marlin that makes it non-compatible with standard laser engraver software. Its own MLaser software is very limited and out of support. With this firmward update, the Laserbot can be used wiht LighBurn and other current software products.
-![](https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/laserbot.png)
-## MegaPi
-The Makeblock LaserBot uses the MegaPi which is based on the ATMega2560 and supports Arduino development.
-![](https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/megapi.png)
+This repository is a Grbl-Mega fork configured for the **Makeblock LaserBot** and its **MegaPi (ATmega2560)** controller.
 
+The goal is to replace the original legacy firmware/software stack with a standard Grbl workflow so the LaserBot can be used with modern software like **LightBurn**.
+
+> Base Grbl-Mega documentation is available here:  
+> https://github.com/gnea/grbl-Mega/blob/edge/README.md
+
+## Makeblock LaserBot + MegaPi
+
+### LaserBot
+
+The Makeblock LaserBot is a 2-axis laser engraver/cutter platform. In this firmware:
+
+- X/Y motion is fully supported with LaserBot pin mapping.
+- Laser power uses Grbl spindle/laser control (`M3`, `M4`, `M5`, `S` values).
+- Homing and limit behavior are configured for LaserBot endstops.
+
+![Makeblock LaserBot](images/laserbot.png)
+
+### MegaPi board
+
+The MegaPi is based on the **ATmega2560**, so it can be programmed directly from the Arduino IDE as an Arduino Mega-class target.
+
+This fork includes a dedicated MegaPi board map and LaserBot defaults:
+
+- `DEFAULTS_MEGAPI_LASERBOT` enabled in `grbl/config.h`
+- `CPU_MAP_2560_MEGAPI_BOARD` enabled in `grbl/config.h`
+- LaserBot-specific pin map in `grbl/cpu_map.h`
+- LaserBot driver/limits/laser PWM handling in `grbl/megapi.c`
+
+![Makeblock MegaPi](images/megapi.png)
+
+## LaserBot defaults in this firmware
+
+Key machine defaults compiled into this build include:
+
+- Baud: **230400**
+- Work area defaults: **X 340 mm**, **Y 360 mm**
+- Laser mode enabled by default (`$32=1`)
+- Homing enabled by default (`$22=1`)
+- PWM range aligned for LaserBot laser control (`S0` to `S255`)
+
+These come from the `DEFAULTS_MEGAPI_LASERBOT` profile in `grbl/defaults.h`.
+
+## Build and flash firmware with Arduino IDE
+
+The LaserBot uses the standard Arduino upload workflow.
+
+### 1) Download this firmware
+
+Either:
+
+- Clone:
+  - `git clone https://github.com/porrey/grbl-MegaPi.git`
+- Or download ZIP from GitHub and extract it.
+
+### 2) Install the Grbl library into Arduino IDE
+
+1. Copy the repository's `grbl` folder into your Arduino libraries folder.
+   - Typical location: `Documents/Arduino/libraries/grbl`
+2. Restart Arduino IDE.
+
+### 3) Open the upload sketch
+
+In Arduino IDE:
+
+1. Open **File > Examples > grbl > grblUpload**
+2. This loads: `grbl/examples/grblUpload/grblUpload.ino`
+
+### 4) Select board and port
+
+In **Tools**:
+
+- **Board**: `Arduino Mega or Mega 2560`
+- **Processor**: `ATmega2560` (if shown)
+- **Port**: Select the LaserBot serial port
+
+### 5) Flash firmware
+
+Click the standard **Upload** button in Arduino IDE.
+
+That is all that is required to flash the LaserBot.
+
+## LightBurn setup
+
+After firmware upload, configure LightBurn with the provided device profile.
+
+### 1) Download and install LightBurn
+
+Get LightBurn from: https://lightburnsoftware.com
+
+### 2) Import the LaserBot device profile
+
+1. Open LightBurn.
+2. Go to **Devices**.
+3. Click **Import**.
+4. Select:
+   - `LightBurn/Laserbot.lbzip`
+5. Finish the import wizard and connect to the LaserBot serial port.
+
+The `Laserbot.lbzip` profile includes the key connection and machine parameters needed for this firmware.
+
+### 3) Open included sample jobs
+
+This repository includes LightBurn samples in `LightBurn/`:
+
+1. **`Cut-Test.lbrn2`**  
+   20 cm x 20 cm cut test pattern.
+2. **`Test.lbrn2`**  
+   Text engraving test file.
+3. **`mando.lbrn2`**  
+   Image etching example.
+
+## LaserBot support summary (what this fork changes)
+
+This fork adds and enables the pieces needed to run a Makeblock LaserBot as a Grbl laser machine:
+
+1. **LaserBot/MegaPi build profile enabled**
+   - `grbl/config.h` enables MegaPi CPU map and LaserBot defaults.
+2. **LaserBot hardware pin mapping**
+   - `grbl/cpu_map.h` defines LaserBot motion, enable, endstop, and laser PWM pins.
+3. **MegaPi board-specific runtime support**
+   - `grbl/megapi.c` initializes drivers, reads LaserBot limits, and controls laser PWM behavior.
+4. **Laser-oriented defaults**
+   - `grbl/defaults.h` sets machine travel, speeds, homing, baud, and laser mode defaults for LaserBot.
+5. **Laser command behavior compatibility**
+   - Laser power behavior is adapted for MegaPi/LaserBot handling in core motion/spindle flow.
+
+Together, these changes modernize the LaserBot workflow and allow practical use with current host software, especially LightBurn.
