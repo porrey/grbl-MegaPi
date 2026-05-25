@@ -1,4 +1,18 @@
-![Grbl Logo](https://github.com/gnea/gnea-Media/blob/master/Grbl%20Logo/Grbl%20Logo%20250px.png?raw=true)
+<div align="center">
+	<table>
+	  <tr>
+	    <td width="33%" align="center">
+	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/grbl.png" width="200" />
+	    </td>
+	    <td width="33%" align="center">
+	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/makeblock.png" width="550" />
+	    </td>
+       <td width="33%" align="center">
+	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/ATmega2560.png" width="150" />
+	    </td>
+	  </tr>
+	</table>
+</div>
 
 # grbl-MegaPi (Makeblock LaserBot Firmware)
 
