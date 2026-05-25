@@ -1,20 +1,20 @@
 <div align="center">
-	<table>
+	<table cellpadding="0" cellspacing="0">
 	  <tr>
 	    <td width="20%" align="center">
-	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/grbl.png" width="200" />
+	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/hdr-grbl.jpg" />
 	    </td>
 	    <td width="20%" align="center">
-	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/makeblock.png" width="550" />
+	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/hdr-makeblock.jpg" />
 	    </td>
        <td width="20%" align="center">
-	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/ATmega2560.png" width="150" />
+	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/hdr-atmega2560.jpg" />
 	    </td>
 		<td width="20%" align="center">
-	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/laserbot.png" width="150" />
+	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/hdr-laserbot.jpg" />
 	    </td>
 		<td width="20%" align="center">
-	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/megapi.png" width="150" />
+	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/hdr-megapi.jpg" />
 	    </td>
 	  </tr>
 	</table>
