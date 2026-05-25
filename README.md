@@ -130,30 +130,6 @@ This repository includes LightBurn samples in `LightBurn/`:
 3. **`mando.lbrn2`**  
    Image etching example.
 
-### 4) Enable soft limits (`$20=1`) in LightBurn
-
-Soft limits are **disabled by default** in this firmware (`$20=0`), so enable them after setup if you want Grbl to alarm on out-of-range moves.
-
-1. Connect to the LaserBot in LightBurn.
-2. Open the **Console** panel.
-3. Send:
-   - `$20=1`
-4. Confirm by sending `$$` and checking that `$20=1` is reported.
-
-Soft limits require homing and valid travel settings (`$130`, `$131`).
-
-## Enable soft limits (`$20=1`) from Arduino IDE
-
-You can set the same option from Arduino IDE using Serial Monitor.
-
-1. Open **Tools > Serial Monitor**.
-2. Set line ending to **Newline** and baud to **230400**.
-3. Send:
-   - `$20=1`
-4. Send `$$` to verify that `$20=1` is saved.
-
-Soft limits are stored in Grbl settings, so this only needs to be done once per controller reset/config reset workflow.
-
 ## LaserGRBL setup
 
 You can also run this firmware with LaserGRBL instead of LightBurn.
@@ -181,6 +157,31 @@ Optional but recommended:
 
 - Home the machine (`$H`) before jobs.
 - Enable soft limits with `$20=1`, then verify with `$$`.
+
+## Enable Soft Limits (optional)
+### Enable soft limits (`$20=1`) in LightBurn
+
+Soft limits are **disabled by default** in this firmware (`$20=0`), so enable them after setup if you want Grbl to alarm on out-of-range moves.
+
+1. Connect to the LaserBot in LightBurn.
+2. Open the **Console** panel.
+3. Send:
+   - `$20=1`
+4. Confirm by sending `$$` and checking that `$20=1` is reported.
+
+Soft limits require homing and valid travel settings (`$130`, `$131`).
+
+### Enable soft limits (`$20=1`) from Arduino IDE
+
+You can set the same option from Arduino IDE using Serial Monitor.
+
+1. Open **Tools > Serial Monitor**.
+2. Set line ending to **Newline** and baud to **230400**.
+3. Send:
+   - `$20=1`
+4. Send `$$` to verify that `$20=1` is saved.
+
+Soft limits are stored in Grbl settings, so this only needs to be done once per controller reset/config reset workflow.
 
 ## LaserBot support summary (what this fork changes)
 
