@@ -34,7 +34,7 @@
         <numPasses Value="10"/>
         <priority Value="0"/>
     </CutSetting>
-    <Shape Type="Rect" CutIndex="3" W="19" H="19" Cr="0">
+    <Shape Type="Rect" CutIndex="3" W="20" H="20" Cr="0">
         <XForm>1 0 0 1 20.5 20.5</XForm>
     </Shape>
     <Notes ShowOnLoad="0" Notes=""/>
