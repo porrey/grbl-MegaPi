@@ -2,7 +2,7 @@
 
 # grbl-MegaPi (Makeblock LaserBot Firmware)
 
-[![Latest Stable Release](https://img.shields.io/github/v/release/porrey/grbl-MegaPi?display_name=tag&sort=semver)](https://github.com/porrey/grbl-MegaPi/releases/latest)
+[![Latest Stable Release](https://img.shields.io/github/v/release/porrey/grbl-MegaPi?style=for-the-badge&display_name=tag&sort=semver)](https://github.com/porrey/grbl-MegaPi/releases/latest)
 
 **Latest stable for LaserBot:** https://github.com/porrey/grbl-MegaPi/releases/latest
 
@@ -129,6 +129,93 @@ This repository includes LightBurn samples in `LightBurn/`:
    Text engraving test file.
 3. **`mando.lbrn2`**  
    Image etching example.
+
+## LaserGRBL setup
+
+You can also run this firmware with LaserGRBL instead of LightBurn.
+
+### 1) Download and install LaserGRBL
+
+Download from: https://lasergrbl.com
+
+### 2) Connect to the LaserBot
+
+1. Start LaserGRBL.
+2. Select the LaserBot COM port.
+3. Set baud rate to **230400**.
+4. Click **Connect**.
+
+### 3) Configure machine profile/settings
+
+Use these baseline values for this firmware:
+
+- Controller type: **Grbl**
+- Work area: **X 340 mm**, **Y 360 mm**
+- Laser mode enabled: `$32=1`
+
+Optional but recommended:
+
+- Home the machine (`$H`) before jobs.
+
+## Enable Soft Limits (optional)
+### Enable soft limits (`$20=1`) in LightBurn
+
+Soft limits are **disabled by default** in this firmware (`$20=0`), so enable them after setup if you want Grbl to alarm on out-of-range moves.
+
+1. Connect to the LaserBot in LightBurn.
+2. Open the **Console** panel.
+3. Send:
+   - `$20=1`
+4. Confirm by sending `$$` and checking that `$20=1` is reported.
+
+Soft limits require homing and valid travel settings (`$130`, `$131`).
+
+### Enable soft limits (`$20=1`) from Arduino IDE
+
+You can set the same option from Arduino IDE using Serial Monitor.
+
+1. Open **Tools > Serial Monitor**.
+2. Set line ending to **Newline** and baud to **230400**.
+3. Send:
+   - `$20=1`
+4. Send `$$` to verify that `$20=1` is saved.
+
+Soft limits are stored in Grbl settings, so this only needs to be done once per controller reset/config reset workflow.
+
+### Enable soft limits (`$20=1`) in LaserGRBL
+
+You can also enable soft limits directly from LaserGRBL.
+
+1. Connect to the LaserBot in LaserGRBL.
+2. Open the **Console** area.
+3. Send:
+   - `$20=1`
+4. Send `$$` and confirm `$20=1` is shown in the settings list.
+
+Soft limits require homing and valid travel settings (`$130`, `$131`).
+
+## Machine travel limits and 5 mm safety buffer
+
+This firmware is configured with a 5 mm safety buffer on each axis:
+
+- `$130=340` (X travel)
+- `$131=360` (Y travel)
+
+The machine can physically travel to about **X=345** and **Y=365**, but the configured values intentionally stop 5 mm short to reduce overtravel risk.
+
+### Set and verify travel limits (`$130`, `$131`) in LightBurn and LaserGRBL
+If you want to expand the limits and remove the 5 mm safetly buffer on each axis, you can reconfigure the settings using the serial interface through the software or the Arduino IDE.
+
+1. Connect to the controller.
+2. Send:
+   - `$130=345`
+   - `$131=365`
+3. Send `$$` and verify `$130` and `$131`.
+
+### Update software work area after changing travel limits
+If you change the firmware limit settings the software will need to be updated too.
+- **LightBurn**: Open **Device Settings** and set work area to **X 345 mm / Y 366 mm** (or your chosen values), then save.
+- **LaserGRBL**: Open machine profile/settings and set work area to **X 345 mm / Y 365 mm** (or your chosen values), then save.
 
 ## LaserBot support summary (what this fork changes)
 
