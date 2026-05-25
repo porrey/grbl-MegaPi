@@ -147,10 +147,18 @@ This repository includes LightBurn samples in `LightBurn/`:
 
 1. **`Cut-Test.lbrn2`**  
    20 cm x 20 cm cut test pattern.
-2. **`Test.lbrn2`**  
+
+   <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/cut-screen.png" width="300px" />
+   
+3. **`Test.lbrn2`**  
    Text engraving test file.
-3. **`mando.lbrn2`**  
+
+   <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/test-screen.png" width="300px" />
+   
+5. **`mando.lbrn2`**  
    Image etching example.
+
+   <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/mando-screen.png" width="300px" />
 
 ## LaserGRBL setup
 
