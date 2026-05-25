@@ -21,8 +21,9 @@
 </div>
 
 # grbl-MegaPi (Makeblock LaserBot Firmware)
-
 [![Latest Stable Release](https://img.shields.io/github/v/release/porrey/grbl-MegaPi?style=for-the-badge&display_name=tag&sort=semver)](https://github.com/porrey/grbl-MegaPi/releases/latest)
+
+Upgrading the LaserBot firmware has really brought this laser engraver back to life! It rivals some of my new engravers and works well.
 
 **Latest stable for LaserBot:** https://github.com/porrey/grbl-MegaPi/releases/latest
 
@@ -145,20 +146,47 @@ The `Laserbot.lbzip` profile includes the key connection and machine parameters 
 
 This repository includes LightBurn samples in `LightBurn/`:
 
-1. **`Cut-Test.lbrn2`**  
-   20 cm x 20 cm cut test pattern.
-
-   <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/cut-screen.png" width="300px" />
-   
-3. **`Test.lbrn2`**  
+1. **`Test.lbrn2`**  
    Text engraving test file.
 
-   <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/test-screen.png" width="300px" />
-   
-5. **`mando.lbrn2`**  
+   <table cellpadding="0" cellspacing="0">
+	  <tr>
+	    <td width="50%" align="center">
+	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/test-screen.png" width="300px" />
+	    </td>
+	    <td width="50%" align="center">
+	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/test-actual.jpg" />
+	    </td>
+	  </tr>
+	</table>
+
+2. **`Cut-Test.lbrn2`**  
+   20 cm x 20 cm cut test pattern.
+
+   <table cellpadding="0" cellspacing="0">
+	  <tr>
+	    <td width="50%" align="center">
+	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/cut-screen.png" width="300px" />
+	    </td>
+	    <td width="50%" align="center">
+	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/cut-actual.jpg" />
+	    </td>
+	  </tr>
+	</table>
+		
+3. **`mando.lbrn2`**  
    Image etching example.
 
-   <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/mando-screen.png" width="300px" />
+	<table cellpadding="0" cellspacing="0">
+	  <tr>
+	    <td width="50%" align="center">
+	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/mando-screen.png" width="300px" />
+	    </td>
+	    <td width="50%" align="center">
+	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/mando-actual.jpg" />
+	    </td>
+	  </tr>
+	</table>
 
 ## LaserGRBL setup
 
