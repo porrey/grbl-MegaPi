@@ -2,7 +2,7 @@
 
 # grbl-MegaPi (Makeblock LaserBot Firmware)
 
-[![Latest Stable Release](https://img.shields.io/github/v/release/porrey/grbl-MegaPi?display_name=tag&sort=semver)](https://github.com/porrey/grbl-MegaPi/releases/latest)
+[![Latest Stable Release](https://img.shields.io/github/v/release/porrey/grbl-MegaPi?style=for-the-badge&display_name=tag&sort=semver)](https://github.com/porrey/grbl-MegaPi/releases/latest)
 
 **Latest stable for LaserBot:** https://github.com/porrey/grbl-MegaPi/releases/latest
 
@@ -204,17 +204,18 @@ This firmware is configured with a 5 mm safety buffer on each axis:
 The machine can physically travel to about **X=345** and **Y=365**, but the configured values intentionally stop 5 mm short to reduce overtravel risk.
 
 ### Set and verify travel limits (`$130`, `$131`) in LightBurn and LaserGRBL
+If you want to expand the limits and remove the 5 mm safetly buffer on each axis, you can reconfigure the settings using the serial interface through the software or the Arduino IDE.
 
 1. Connect to the controller.
 2. Send:
-   - `$130=340`
-   - `$131=360`
+   - `$130=345`
+   - `$131=365`
 3. Send `$$` and verify `$130` and `$131`.
 
 ### Update software work area after changing travel limits
-
-- **LightBurn**: Open **Device Settings** and set work area to **X 340 mm / Y 360 mm** (or your chosen values), then save.
-- **LaserGRBL**: Open machine profile/settings and set work area to **X 340 mm / Y 360 mm** (or your chosen values), then save.
+If you change the firmware limit settings the software will need to be updated too.
+- **LightBurn**: Open **Device Settings** and set work area to **X 345 mm / Y 366 mm** (or your chosen values), then save.
+- **LaserGRBL**: Open machine profile/settings and set work area to **X 345 mm / Y 365 mm** (or your chosen values), then save.
 
 ## LaserBot support summary (what this fork changes)
 
