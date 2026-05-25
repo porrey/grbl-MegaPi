@@ -1,14 +1,20 @@
 <div align="center">
 	<table>
 	  <tr>
-	    <td width="33%" align="center">
+	    <td width="20%" align="center">
 	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/grbl.png" width="200" />
 	    </td>
-	    <td width="33%" align="center">
+	    <td width="20%" align="center">
 	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/makeblock.png" width="550" />
 	    </td>
-       <td width="33%" align="center">
+       <td width="20%" align="center">
 	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/ATmega2560.png" width="150" />
+	    </td>
+		<td width="20%" align="center">
+	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/laserbot.png" width="150" />
+	    </td>
+		<td width="20%" align="center">
+	      <img src="https://raw.githubusercontent.com/porrey/grbl-MegaPi/refs/heads/edge/images/megapi.png" width="150" />
 	    </td>
 	  </tr>
 	</table>
