@@ -179,8 +179,8 @@ Optional but recommended:
 
 - Home the machine (`$H`) before jobs.
 
-## Enable Soft Limits (optional)
-### Enable soft limits (`$20=1`) in LightBurn
+## Enable Soft Limits [`$20=1`] (optional)
+### Enable soft limits in LightBurn
 
 Soft limits are **disabled by default** in this firmware (`$20=0`), so enable them after setup if you want Grbl to alarm on out-of-range moves.
 
@@ -192,7 +192,7 @@ Soft limits are **disabled by default** in this firmware (`$20=0`), so enable th
 
 Soft limits require homing and valid travel settings (`$130`, `$131`).
 
-### Enable soft limits (`$20=1`) from Arduino IDE
+### Enable soft limits from Arduino IDE
 
 You can set the same option from Arduino IDE using Serial Monitor.
 
@@ -204,7 +204,7 @@ You can set the same option from Arduino IDE using Serial Monitor.
 
 Soft limits are stored in Grbl settings, so this only needs to be done once per controller reset/config reset workflow.
 
-### Enable soft limits (`$20=1`) in LaserGRBL
+### Enable soft limits in LaserGRBL
 
 You can also enable soft limits directly from LaserGRBL.
 
