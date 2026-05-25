@@ -63,6 +63,8 @@ This fork includes a dedicated MegaPi board map and LaserBot defaults:
 
 ![Makeblock MegaPi](images/megapi.png)
 
+See [MegaPi Documentation](https://viewscreen.githubusercontent.com/view/pdf?browser=safari&bypass_fastly=true&color_mode=auto&commit=b9383cd85f197ab8936399eb5f6a5a912ebbdff2&device=unknown_device&docs_host=https%3A%2F%2Fdocs.github.com&enc_url=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f706f727265792f6772626c2d4d65676150692f623933383363643835663139376162383933363339396562356636613561393132656262646666322f4d65676150692f4d65676150692e706466&link_underline_enabled=true&logged_in=true&nwo=porrey%2Fgrbl-MegaPi&path=MegaPi%2FMegaPi.pdf&platform=mac&repository_id=1247987980&repository_type=Repository&version=26#2b83cae2-82dd-43a2-be61-1c6c436ce3f4) for more information.
+
 ## LaserBot defaults in this firmware
 
 Key machine defaults compiled into this build include:
