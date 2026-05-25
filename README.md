@@ -156,7 +156,6 @@ Use these baseline values for this firmware:
 Optional but recommended:
 
 - Home the machine (`$H`) before jobs.
-- Enable soft limits with `$20=1`, then verify with `$$`.
 
 ## Enable Soft Limits (optional)
 ### Enable soft limits (`$20=1`) in LightBurn
@@ -182,6 +181,40 @@ You can set the same option from Arduino IDE using Serial Monitor.
 4. Send `$$` to verify that `$20=1` is saved.
 
 Soft limits are stored in Grbl settings, so this only needs to be done once per controller reset/config reset workflow.
+
+### Enable soft limits (`$20=1`) in LaserGRBL
+
+You can also enable soft limits directly from LaserGRBL.
+
+1. Connect to the LaserBot in LaserGRBL.
+2. Open the **Console** area.
+3. Send:
+   - `$20=1`
+4. Send `$$` and confirm `$20=1` is shown in the settings list.
+
+Soft limits require homing and valid travel settings (`$130`, `$131`).
+
+## Machine travel limits and 5 mm safety buffer
+
+This firmware is configured with a 5 mm safety buffer on each axis:
+
+- `$130=340` (X travel)
+- `$131=360` (Y travel)
+
+The machine can physically travel to about **X=345** and **Y=365**, but the configured values intentionally stop 5 mm short to reduce overtravel risk.
+
+### Set and verify travel limits (`$130`, `$131`) in LightBurn and LaserGRBL
+
+1. Connect to the controller.
+2. Send:
+   - `$130=340`
+   - `$131=360`
+3. Send `$$` and verify `$130` and `$131`.
+
+### Update software work area after changing travel limits
+
+- **LightBurn**: Open **Device Settings** and set work area to **X 340 mm / Y 360 mm** (or your chosen values), then save.
+- **LaserGRBL**: Open machine profile/settings and set work area to **X 340 mm / Y 360 mm** (or your chosen values), then save.
 
 ## LaserBot support summary (what this fork changes)
 
